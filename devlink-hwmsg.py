@@ -20,7 +20,9 @@ class tracepoint(perf.evsel):
         config = perf.tracepoint(sys, name)
         perf.evsel.__init__(self, type = perf.TYPE_TRACEPOINT, config = config,
                             freq = 0, sample_period = 1, wakeup_events = 1,
-                            sample_type = perf.SAMPLE_PERIOD | perf.SAMPLE_TID | perf.SAMPLE_CPU | perf.SAMPLE_RAW)
+                            sample_type = perf.SAMPLE_PERIOD | perf.SAMPLE_TID |
+                            perf.SAMPLE_CPU | perf.SAMPLE_RAW |
+                            perf.SAMPLE_TIME)
 
 pcap_header = struct.pack("IHHiIII", 0xa1b2c3d4, 2, 4, 0, 0, 0xffff, 0)
 
@@ -38,6 +40,31 @@ TLV_TYPE_INCOMING = 3
 TLV_TYPE_TYPE = 4
 TLV_TYPE_BUF = 5
 
+def pcap_header_out():
+    sys.stdout = os.fdopen(1, "wb")
+    sys.stdout.write(pcap_header)
+    sys.stdout.flush()
+
+def normalize_ba(ba):
+    if (isinstance(ba, str)):
+        ba = bytearray(ba + "\0")
+    return ba
+
+def event_out(event):
+    data = bytearray()
+    data += tlv_data(TLV_TYPE_BUS_NAME, normalize_ba(event.bus_name))
+    data += tlv_data(TLV_TYPE_DEV_NAME, normalize_ba(event.dev_name))
+    data += tlv_data(TLV_TYPE_OWNER_NAME, normalize_ba(event.owner_name))
+    data += tlv_data(TLV_TYPE_INCOMING, struct.pack("B", event.incoming))
+    data += tlv_data(TLV_TYPE_TYPE, struct.pack("H", event.type))
+    data += tlv_data(TLV_TYPE_BUF, normalize_ba(event.buf))
+    
+    secs = event.sample_time / 1000000000
+    usecs = (event.sample_time % 1000000000) / 1000
+    sys.stdout.write(pcap_packet_header(secs, usecs, len(data)))
+    sys.stdout.write(data)
+    sys.stdout.flush()
+
 def main():
     tp = tracepoint("devlink", "devlink_hwmsg")
     cpus = perf.cpu_map()
@@ -48,9 +75,7 @@ def main():
     evlist.open()
     evlist.mmap()
     
-    sys.stdout = os.fdopen(1, "wb")
-    sys.stdout.write(pcap_header)
-    sys.stdout.flush()
+    pcap_header_out()
 
     while True:
         try:
@@ -58,24 +83,13 @@ def main():
         except KeyboardInterrupt:
             break
         for cpu in cpus:
-            event = evlist.read_on_cpu(cpu)
-            if not event:
-                continue
-
-            if not isinstance(event, perf.sample_event):
-                continue
-
-            data = bytearray()
-            data += tlv_data(TLV_TYPE_BUS_NAME, event.bus_name)
-            data += tlv_data(TLV_TYPE_DEV_NAME, event.dev_name)
-            data += tlv_data(TLV_TYPE_OWNER_NAME, event.owner_name)
-            data += tlv_data(TLV_TYPE_INCOMING, struct.pack("B", event.incoming))
-            data += tlv_data(TLV_TYPE_TYPE, struct.pack("H", event.type))
-            data += tlv_data(TLV_TYPE_BUF, event.buf)
-    
-            sys.stdout.write(pcap_packet_header(0, 0, len(data)))
-            sys.stdout.write(data)
-            sys.stdout.flush()
+            while True:
+                event = evlist.read_on_cpu(cpu)
+                if not event:
+                    break
+                if not isinstance(event, perf.sample_event):
+                    continue
+                event_out(event)
 
 if __name__ == '__main__':
     main()
