@@ -37,19 +37,19 @@ def trace_begin():
 
 TLV_TYPE_BUS_NAME = 0
 TLV_TYPE_DEV_NAME = 1
-TLV_TYPE_OWNER_NAME = 2
+TLV_TYPE_DRIVER_NAME = 2
 TLV_TYPE_INCOMING = 3
 TLV_TYPE_TYPE = 4
 TLV_TYPE_BUF = 5
 
 def devlink__devlink_hwmsg(event_name, context, common_cpu, common_secs,
                            common_nsecs, common_pid, common_comm,
-                           common_callchain, bus_name, dev_name, owner_name,
+                           common_callchain, bus_name, dev_name, driver_name,
                            incoming, _type, _buf, _len):
     data = bytearray()
     data += tlv_data(TLV_TYPE_BUS_NAME, bus_name)
     data += tlv_data(TLV_TYPE_DEV_NAME, dev_name)
-    data += tlv_data(TLV_TYPE_OWNER_NAME, owner_name)
+    data += tlv_data(TLV_TYPE_DRIVER_NAME, driver_name)
     data += tlv_data(TLV_TYPE_INCOMING, struct.pack("B", incoming))
     data += tlv_data(TLV_TYPE_TYPE, struct.pack("H", _type))
     buf = bytearray(_buf)

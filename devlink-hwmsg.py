@@ -35,7 +35,7 @@ def tlv_data(data_type, data):
 
 TLV_TYPE_BUS_NAME = 0
 TLV_TYPE_DEV_NAME = 1
-TLV_TYPE_OWNER_NAME = 2
+TLV_TYPE_DRIVER_NAME = 2
 TLV_TYPE_INCOMING = 3
 TLV_TYPE_TYPE = 4
 TLV_TYPE_BUF = 5
@@ -54,7 +54,7 @@ def event_out(event):
     data = bytearray()
     data += tlv_data(TLV_TYPE_BUS_NAME, normalize_ba(event.bus_name))
     data += tlv_data(TLV_TYPE_DEV_NAME, normalize_ba(event.dev_name))
-    data += tlv_data(TLV_TYPE_OWNER_NAME, normalize_ba(event.owner_name))
+    data += tlv_data(TLV_TYPE_DRIVER_NAME, normalize_ba(event.driver_name))
     data += tlv_data(TLV_TYPE_INCOMING, struct.pack("B", event.incoming))
     data += tlv_data(TLV_TYPE_TYPE, struct.pack("H", event.type))
     data += tlv_data(TLV_TYPE_BUF, normalize_ba(event.buf))
