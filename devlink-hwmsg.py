@@ -24,7 +24,9 @@ class tracepoint(perf.evsel):
                             perf.SAMPLE_CPU | perf.SAMPLE_RAW |
                             perf.SAMPLE_TIME)
 
-pcap_header = struct.pack("IHHiIII", 0xa1b2c3d4, 2, 4, 0, 0, 0xffff, 0)
+LINKTYPE_USER15 = 162
+pcap_header = struct.pack("IHHiIII", 0xa1b2c3d4, 2, 4, 0, 0, 0xffff,
+                          LINKTYPE_USER15)
 
 def pcap_packet_header(secs, usecs, pktlen):
     return struct.pack("IIII", secs, usecs, pktlen, pktlen)
