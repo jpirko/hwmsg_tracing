@@ -60,7 +60,7 @@ def event_out(event):
     data += tlv_data(TLV_TYPE_INCOMING, struct.pack("B", event.incoming))
     data += tlv_data(TLV_TYPE_TYPE, struct.pack("H", event.type))
     data += tlv_data(TLV_TYPE_BUF, normalize_ba(event.buf))
-    
+
     secs = event.sample_time / 1000000000
     usecs = (event.sample_time % 1000000000) / 1000
     sys.stdout.write(pcap_packet_header(secs, usecs, len(data)))
@@ -76,7 +76,7 @@ def main():
     evlist.add(tp)
     evlist.open()
     evlist.mmap()
-    
+
     pcap_header_out()
 
     while True:
