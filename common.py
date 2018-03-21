@@ -17,25 +17,38 @@ def pcap_header_out(f = sys.stdout):
 def pcap_packet_header(secs, usecs, pktlen):
     return struct.pack("IIII", secs, usecs, pktlen, pktlen)
 
+def nulstr_to_str(s):
+    assert s.endswith('\0')
+    return s[:-1]
+
 def normalize_ba(ba):
     if (isinstance(ba, str)):
         ba = bytearray(ba + "\0")
     return ba
 
 class Tag:
-    def __init__(self, tag, encoder):
+    def __init__(self, tag, decoder, encoder):
         self._tag = tag
+        self._decoder = decoder
         self._encoder = encoder
 
     def tag(self):
         return self._tag
 
+    def decode(self, s):
+        return self._decoder(s)
+
     def encode(self, v):
         return self._encoder(v)
 
-tlv_bus_name =    Tag(0, normalize_ba)
-tlv_dev_name =    Tag(1, normalize_ba)
-tlv_driver_name = Tag(2, normalize_ba)
-tlv_incoming =    Tag(3, lambda v: struct.pack("?", v))
-tlv_type =        Tag(4, lambda v: struct.pack("H", v))
-tlv_buf =         Tag(5, lambda v: v)
+tlv_bus_name =    Tag(0, nulstr_to_str, normalize_ba)
+tlv_dev_name =    Tag(1, nulstr_to_str, normalize_ba)
+tlv_driver_name = Tag(2, nulstr_to_str, normalize_ba)
+tlv_incoming =    Tag(3, lambda s: struct.unpack("?", s)[0],
+                         lambda v: struct.pack("?", v))
+tlv_type =        Tag(4, lambda s: struct.unpack("H", s)[0],
+                         lambda v: struct.pack("H", v))
+tlv_buf =         Tag(5, lambda s: s, lambda v: v)
+
+tag_dict = {t.tag(): t for t in [tlv_bus_name, tlv_dev_name, tlv_driver_name,
+                                 tlv_incoming, tlv_type, tlv_buf]}
