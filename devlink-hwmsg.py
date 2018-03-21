@@ -43,7 +43,6 @@ TLV_TYPE_TYPE = 4
 TLV_TYPE_BUF = 5
 
 def pcap_header_out():
-    sys.stdout = os.fdopen(1, "wb")
     sys.stdout.write(pcap_header)
     sys.stdout.flush()
 
@@ -68,6 +67,8 @@ def event_out(event):
     sys.stdout.flush()
 
 def main():
+    sys.stdout = os.fdopen(1, "wb")
+
     tp = tracepoint("devlink", "devlink_hwmsg")
     cpus = perf.cpu_map()
     threads = perf.thread_map(-1)
