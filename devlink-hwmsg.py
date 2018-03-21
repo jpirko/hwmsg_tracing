@@ -14,6 +14,7 @@ import perf
 import sys
 import os
 import struct
+from common import pcap_header_out
 
 class tracepoint(perf.evsel):
     def __init__(self, sys, name):
@@ -23,10 +24,6 @@ class tracepoint(perf.evsel):
                             sample_type = perf.SAMPLE_PERIOD | perf.SAMPLE_TID |
                             perf.SAMPLE_CPU | perf.SAMPLE_RAW |
                             perf.SAMPLE_TIME)
-
-LINKTYPE_USER15 = 162
-pcap_header = struct.pack("IHHiIII", 0xa1b2c3d4, 2, 4, 0, 0, 0xffff,
-                          LINKTYPE_USER15)
 
 def pcap_packet_header(secs, usecs, pktlen):
     return struct.pack("IIII", secs, usecs, pktlen, pktlen)
@@ -41,10 +38,6 @@ TLV_TYPE_DRIVER_NAME = 2
 TLV_TYPE_INCOMING = 3
 TLV_TYPE_TYPE = 4
 TLV_TYPE_BUF = 5
-
-def pcap_header_out():
-    sys.stdout.write(pcap_header)
-    sys.stdout.flush()
 
 def normalize_ba(ba):
     if (isinstance(ba, str)):
