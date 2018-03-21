@@ -14,7 +14,7 @@ import perf
 import sys
 import os
 import struct
-from common import pcap_header_out, \
+from common import pcap_header_out, pcap_packet_header, \
     tlv_bus_name, tlv_dev_name, tlv_driver_name, tlv_incoming, tlv_type, tlv_buf
 
 class tracepoint(perf.evsel):
@@ -25,9 +25,6 @@ class tracepoint(perf.evsel):
                             sample_type = perf.SAMPLE_PERIOD | perf.SAMPLE_TID |
                             perf.SAMPLE_CPU | perf.SAMPLE_RAW |
                             perf.SAMPLE_TIME)
-
-def pcap_packet_header(secs, usecs, pktlen):
-    return struct.pack("IIII", secs, usecs, pktlen, pktlen)
 
 def tlv_data(data_type, data):
     enc = data_type.encode(data)

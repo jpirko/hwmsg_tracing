@@ -14,6 +14,9 @@ def pcap_header_out(f = sys.stdout):
     f.write(pcap_header)
     f.flush()
 
+def pcap_packet_header(secs, usecs, pktlen):
+    return struct.pack("IIII", secs, usecs, pktlen, pktlen)
+
 def normalize_ba(ba):
     if (isinstance(ba, str)):
         ba = bytearray(ba + "\0")
