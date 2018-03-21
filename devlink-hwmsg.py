@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 """
-Copyright 2016 Mellanox Technologies. All rights reserved.
+Copyright 2016, 2018 Mellanox Technologies. All rights reserved.
 Licensed under the GNU General Public License, version 2 as
 published by the Free Software Foundation; see COPYING for details.
 """
@@ -14,7 +14,8 @@ import perf
 import sys
 import os
 import struct
-from common import pcap_header_out
+from common import pcap_header_out, \
+    tlv_bus_name, tlv_dev_name, tlv_driver_name, tlv_incoming, tlv_type, tlv_buf
 
 class tracepoint(perf.evsel):
     def __init__(self, sys, name):
@@ -29,29 +30,18 @@ def pcap_packet_header(secs, usecs, pktlen):
     return struct.pack("IIII", secs, usecs, pktlen, pktlen)
 
 def tlv_data(data_type, data):
-    tlv_header = struct.pack("HH", data_type, len(data))
-    return tlv_header + data
-
-TLV_TYPE_BUS_NAME = 0
-TLV_TYPE_DEV_NAME = 1
-TLV_TYPE_DRIVER_NAME = 2
-TLV_TYPE_INCOMING = 3
-TLV_TYPE_TYPE = 4
-TLV_TYPE_BUF = 5
-
-def normalize_ba(ba):
-    if (isinstance(ba, str)):
-        ba = bytearray(ba + "\0")
-    return ba
+    enc = data_type.encode(data)
+    tlv_header = struct.pack("HH", data_type.tag(), len(enc))
+    return tlv_header + enc
 
 def event_out(event):
     data = bytearray()
-    data += tlv_data(TLV_TYPE_BUS_NAME, normalize_ba(event.bus_name))
-    data += tlv_data(TLV_TYPE_DEV_NAME, normalize_ba(event.dev_name))
-    data += tlv_data(TLV_TYPE_DRIVER_NAME, normalize_ba(event.driver_name))
-    data += tlv_data(TLV_TYPE_INCOMING, struct.pack("B", event.incoming))
-    data += tlv_data(TLV_TYPE_TYPE, struct.pack("H", event.type))
-    data += tlv_data(TLV_TYPE_BUF, normalize_ba(event.buf))
+    data += tlv_data(tlv_bus_name, event.bus_name)
+    data += tlv_data(tlv_dev_name, event.dev_name)
+    data += tlv_data(tlv_driver_name, event.driver_name)
+    data += tlv_data(tlv_incoming, event.incoming)
+    data += tlv_data(tlv_type, event.type)
+    data += tlv_data(tlv_buf, event.buf)
 
     secs = event.sample_time / 1000000000
     usecs = (event.sample_time % 1000000000) / 1000
