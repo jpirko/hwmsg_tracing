@@ -274,6 +274,8 @@ def main():
         except pcapy.PcapError:
             break
 
+        if hdr == None:
+            break
         secs, usecs = hdr.getts()
         tlv = read_tlv(payload)
         if evaluate(query, tlv).value():
