@@ -16,6 +16,9 @@ import struct
 from common import pcap_header_out, pcap_packet_header, \
     tlv_bus_name, tlv_dev_name, tlv_driver_name, tlv_incoming, tlv_type, tlv_buf
 
+from signal import signal, SIGPIPE, SIG_DFL
+signal(SIGPIPE,SIG_DFL)
+
 class tracepoint(perf.evsel):
     def __init__(self, sys, name):
         config = perf.tracepoint(sys, name)
