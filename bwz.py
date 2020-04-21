@@ -34,6 +34,7 @@ def usage():
         "  -s EXPR   Packet slicer expression (what to include in a packet)\n"
         '  -r FILE   Read input from FILE ("-" means stdin, the default)\n'
         '  -w FILE   Write output to FILE ("-" means stdout, the default)\n'
+        '  -t TYPE   LINKTYPE to use in pcap header (the default is 162)\n'
         "  --help    Show this help and exit\n"
         "  --show    Show filter and slicer expressions and exit\n"
         "\n"
@@ -81,7 +82,7 @@ def usage():
         )
 
 try:
-    optlist, args = getopt.gnu_getopt(sys.argv[1:], 'f:r:s:vw:',
+    optlist, args = getopt.gnu_getopt(sys.argv[1:], 'f:r:s:t:vw:',
                                       ["help", "show"])
 except(getopt.GetoptError, e):
     print(e)
@@ -92,6 +93,7 @@ slicer_string = "tlv(*all)"
 show_exprs_and_exit = False
 read_file = "-"
 write_file = "-"
+link_type = 162
 
 opts = dict(optlist)
 if "--help" in opts:
@@ -109,6 +111,8 @@ if "-w" in opts:
     write_file = opts["-w"]
 if "-v" in opts:
     verbose = True
+if "-t" in opts:
+    link_type = int(opts["-t"])
 
 class Q(object):
     def __eq__(self, other):
@@ -265,7 +269,7 @@ def read_tlv(data):
 
 def main():
     out = os.fdopen(1, "wb") if write_file == "-" else open(write_file, "wb")
-    pcap_header_out(out)
+    pcap_header_out(out, link_type)
 
     r = pcapy.open_offline(read_file)
     while True:
