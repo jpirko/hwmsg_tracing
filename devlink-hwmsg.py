@@ -12,7 +12,6 @@ jiri@mellanox.com (Jiri Pirko)
 
 import perf
 import sys
-import os
 import struct
 from common import pcap_header_out, pcap_packet_header, \
     tlv_bus_name, tlv_dev_name, tlv_driver_name, tlv_incoming, tlv_type, tlv_buf
@@ -40,14 +39,14 @@ def event_out(event):
     data += tlv_data(tlv_type, event.type)
     data += tlv_data(tlv_buf, event.buf)
 
-    secs = event.sample_time / 1000000000
-    usecs = (event.sample_time % 1000000000) / 1000
+    secs = event.sample_time // 1000000000
+    usecs = (event.sample_time % 1000000000) // 1000
     sys.stdout.write(pcap_packet_header(secs, usecs, len(data)))
     sys.stdout.write(data)
     sys.stdout.flush()
 
 def main():
-    sys.stdout = os.fdopen(1, "wb")
+    sys.stdout = open('/dev/stdout', 'wb')
 
     tp = tracepoint("devlink", "devlink_hwmsg")
     cpus = perf.cpu_map()
@@ -58,7 +57,7 @@ def main():
     evlist.open()
     evlist.mmap()
 
-    pcap_header_out()
+    pcap_header_out(sys.stdout)
 
     while True:
         try:
