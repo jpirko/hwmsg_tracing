@@ -83,8 +83,8 @@ def usage():
 try:
     optlist, args = getopt.gnu_getopt(sys.argv[1:], 'f:r:s:vw:',
                                       ["help", "show"])
-except getopt.GetoptError, e:
-    print e
+except(getopt.GetoptError, e):
+    print(e)
     sys.exit(1)
 
 query_string = "True"
@@ -191,7 +191,7 @@ class Slicer(object):
         self._items = list(gen)
 
     def slice_data(self, tlv):
-        ret = ""
+        ret = bytearray()
         for item in self._items:
             a = evaluate(item, tlv)
             tag = a.tag()
@@ -242,8 +242,8 @@ class Query:
     buf = Select(tlv_buf.tag(), "buf")
     v = Immediate
 
-query = eval(query_string, Query.__dict__)
-slicer = eval(slicer_string, Query.__dict__,
+query = eval(query_string, dict(Query.__dict__))
+slicer = eval(slicer_string, dict(Query.__dict__),
               {"tlv": lambda *args: TLVSlicer(iter(args)),
                "all": (Query.bus, Query.dev, Query.driver, Query.incoming,
                        Query.type, Query.buf)})
@@ -264,7 +264,7 @@ def read_tlv(data):
     return ret
 
 def main():
-    out = os.fdopen(1, "wb") if write_file == "-" else file(write_file, "wb")
+    out = os.fdopen(1, "wb") if write_file == "-" else open(write_file, "wb")
     pcap_header_out(out)
 
     r = pcapy.open_offline(read_file)
@@ -285,7 +285,7 @@ def main():
                 out.write(pcap_packet_header(secs, usecs, len(data)))
                 out.write(data)
                 out.flush()
-            except IOError, e:
+            except(IOError, e):
                 if e.errno == errno.EPIPE:
                     return
                 raise
