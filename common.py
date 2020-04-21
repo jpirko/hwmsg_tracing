@@ -18,12 +18,12 @@ def pcap_packet_header(secs, usecs, pktlen):
     return struct.pack("IIII", secs, usecs, pktlen, pktlen)
 
 def nulstr_to_str(s):
-    assert s.endswith('\0')
+    assert s.endswith(b'\0')
     return s[:-1]
 
 def normalize_ba(ba):
     if (isinstance(ba, str)):
-        ba = bytearray(ba + "\0")
+        ba = bytearray(ba + "\0", 'utf-8')
     return ba
 
 class Tag:
